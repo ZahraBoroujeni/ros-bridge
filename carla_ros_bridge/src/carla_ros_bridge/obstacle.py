@@ -75,7 +75,7 @@ class ObstacleSensor(Sensor):
         """
         obstacle_msg = CarlaObstacle()
         obstacle_msg.header = self.get_msg_header(timestamp=carla_obstacle_measurement.timestamp)
-        obstacle_msg.speed = math.sqrt(self.get_vehicle_speed_squared(carla_obstacle_measurement.other_actor.get_velocity()))
+        obstacle_msg.speed = math.sqrt(self.get_vector_length_squared(carla_obstacle_measurement.other_actor.get_velocity()))
         obstacle_msg.distance = carla_obstacle_measurement.distance
 
 
