@@ -54,7 +54,7 @@ class ObstacleSensor(Sensor):
         super(ObstacleSensor, self).destroy()
         self.node.destroy_publisher(self.obstacle_publisher)
     
-    def get_vector_length_squared(carla_vector):
+    def get_vector_length_squared(self,carla_vector):
         """
         Calculate the squared length of a carla_vector
         :param carla_vector: the carla vector
@@ -75,7 +75,7 @@ class ObstacleSensor(Sensor):
         """
         obstacle_msg = CarlaObstacle()
         obstacle_msg.header = self.get_msg_header(timestamp=carla_obstacle_measurement.timestamp)
-        obstacle_msg.speed = math.sqrt(self.get_vector_length_squared(carla_obstacle_measurement.other_actor.get_velocity()))
+        obstacle_msg.velocity = math.sqrt(self.get_vector_length_squared(carla_obstacle_measurement.other_actor.get_velocity()))
         obstacle_msg.distance = carla_obstacle_measurement.distance
 
 
