@@ -53,7 +53,7 @@ class ObstacleSensor(Sensor):
     def destroy(self):
         super(ObstacleSensor, self).destroy()
         self.node.destroy_publisher(self.obstacle_publisher)
-    
+
     def get_vector_length_squared(self,carla_vector):
         """
         Calculate the squared length of a carla_vector
@@ -66,6 +66,27 @@ class ObstacleSensor(Sensor):
             carla_vector.y * carla_vector.y + \
             carla_vector.z * carla_vector.z
 
+    def get_laterl_distance(self, carla_obstacle_measurement):
+        ego = carla_obstacle_measurement.actor
+        other = carla_obstacle_measurement.other_actor
+
+        ego_loc = ego.get_location()
+        ego_rot = ego.get_transform().rotation
+
+        # Vector from ego to other (world frame)
+        dx = other.get_location().x - ego_loc.x
+        dy = other.get_location().y - ego_loc.y
+
+        # Ego yaw (degrees → radians)
+        yaw = math.radians(ego_rot.yaw)
+
+        # Ego right-direction unit vector
+        right_x = math.cos(yaw + math.pi / 2)
+        right_y = math.sin(yaw + math.pi / 2)
+
+        # Lateral distance (signed)
+        lateral_distance = dx * right_x + dy * right_y
+        return lateral_distance
     # pylint: disable=arguments-differ
     def sensor_data_updated(self, carla_obstacle_measurement):
         """
@@ -76,7 +97,9 @@ class ObstacleSensor(Sensor):
         obstacle_msg = CarlaObstacle()
         obstacle_msg.header = self.get_msg_header(timestamp=carla_obstacle_measurement.timestamp)
         obstacle_msg.velocity = math.sqrt(self.get_vector_length_squared(carla_obstacle_measurement.other_actor.get_velocity()))
-        obstacle_msg.distance = carla_obstacle_measurement.distance
-
+        if (self.get_laterl_distance(carla_obstacle_measurement)< 2.0):
+            obstacle_msg.distance = carla_obstacle_measurement.distance
+        else:
+            obstacle_msg.distance = 1000.0
 
         self.obstacle_publisher.publish(obstacle_msg)
